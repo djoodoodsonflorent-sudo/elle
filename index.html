@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Une petite question...</title>
+    <style>
+        /* On cache la zone d'invitation par défaut pour l'instant */
+        #invitation-section { display: none; } 
+    </style>
+</head>
+<body>
+
+    <div id="generator-section">
+        <h1>Créer une invitation secrète</h1>
+        <p>Tape ton message ci-dessous :</p>
+        <input type="text" id="secret-message" placeholder="Ex: Nalda, on va se promener ce soir ?" size="40">
+        <br><br>
+        <button id="generate-btn">Créer le lien</button>
+        <br><br>
+        <textarea id="generated-link" rows="3" cols="40" readonly placeholder="Ton lien apparaîtra ici..."></textarea>
+    </div>
+
+    <div id="invitation-section">
+        <h1 id="display-message">Message par défaut</h1>
+        
+        <div class="buttons-container">
+            <button id="btn-yes">Oui !</button>
+            <button id="btn-no">Non</button>
+        </div>
+        
+        <h2 id="success-message" style="display: none;">Parfait, à tout à l'heure ! 😉</h2>
+    </div>
+
+</body>
+</html>
+/* Style général de la page */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffe6e6; /* Un petit rose pastel très doux */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Prend 100% de la hauteur de l'écran */
+    margin: 0;
+    text-align: center;
+    overflow: hidden; /* Empêche l'écran de scroller si le bouton part trop loin */
+}
+
+/* Style des deux boîtes (générateur et invitation) */
+#generator-section, #invitation-section {
+    background-color: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1); /* Petite ombre élégante */
+    max-width: 400px;
+    width: 90%;
+}
+
+/* Style des champs de texte */
+input[type="text"], textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+/* Style commun à tous les boutons */
+button {
+    padding: 12px 25px;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.3s; /* Petit effet de transition */
+}
+
+/* Couleurs spécifiques des boutons */
+#generate-btn { background-color: #007bff; }
+#generate-btn:hover { background-color: #0056b3; }
+
+#btn-yes { background-color: #28a745; margin-right: 15px; }
+#btn-yes:hover { background-color: #218838; }
+
+#btn-no { 
+    background-color: #dc3545; 
+    position: relative; /* Préparation pour le JavaScript */
+    /* On ajoute une petite transition pour que le bouton 'glisse' et ne disparaisse pas d'un coup sec */
+    transition: top 0.2s ease, left 0.2s ease; 
+}
+
+.buttons-container {
+    margin-top: 30px;
+}
+// 1. On vérifie l'URL de la page
+const urlParams = new URLSearchParams(window.location.search);
+const msg = urlParams.get('msg'); // On cherche s'il y a un paramètre "?msg=..."
+
+// Si un message est dans l'URL, on affiche l'invitation pour elle
+if (msg) {
+    document.getElementById('generator-section').style.display = 'none';
+    document.getElementById('invitation-section').style.display = 'block';
+    // On décode le message et on l'affiche dans le grand titre
+    document.getElementById('display-message').innerText = decodeURIComponent(msg);
+} 
+// Sinon, c'est toi qui es sur la page, on affiche le générateur
+else {
+    document.getElementById('generator-section').style.display = 'block';
+    document.getElementById('invitation-section').style.display = 'none';
+}
+
+// 2. Logique du bouton "Créer le lien"
+document.getElementById('generate-btn').addEventListener('click', function() {
+    const inputMessage = document.getElementById('secret-message').value;
+    
+    if (inputMessage.trim() === "") {
+        alert("N'oublie pas d'écrire un message !");
+        return;
+    }
+
+    // On récupère l'adresse actuelle de ta page (sans ce qu'il y a après le ?)
+    const baseUrl = window.location.href.split('?')[0];
+    
+    // On crée le lien final en encodant les espaces et caractères spéciaux
+    const finalUrl = baseUrl + '?msg=' + encodeURIComponent(inputMessage);
+    
+    // On affiche le lien dans la zone de texte
+    document.getElementById('generated-link').value = finalUrl;
+});
+
+// 3. La magie du bouton "Non" qui s'enfuit !
+const btnNo = document.getElementById('btn-no');
+
+function moveButton() {
+    // On calcule une nouvelle position aléatoire (X et Y) sur l'écran
+    // On soustrait la taille du bouton pour qu'il ne sorte pas de l'écran
+    const x = Math.random() * (window.innerWidth - btnNo.offsetWidth - 20);
+    const y = Math.random() * (window.innerHeight - btnNo.offsetHeight - 20);
+
+    // On change la position du bouton instantanément
+    btnNo.style.position = 'absolute';
+    btnNo.style.left = `${x}px`;
+    btnNo.style.top = `${y}px`;
+}
+
+// Le bouton bouge si la souris passe dessus (ordinateur) ou si on le touche (téléphone)
+btnNo.addEventListener('mouseover', moveButton);
+btnNo.addEventListener('touchstart', moveButton);
+
+// 4. Logique du bouton "Oui !"
+document.getElementById('btn-yes').addEventListener('click', function() {
+    // On cache les boutons et on affiche le message de succès
+    document.querySelector('.buttons-container').style.display = 'none';
+    document.getElementById('success-message').style.display = 'block';
+});
